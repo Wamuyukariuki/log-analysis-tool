@@ -1,0 +1,71 @@
+{% extends "logs/base.html" %}
+
+{% block title %}Security Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Security Dashboard</h2>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                Failed Login Attempts (Last 24 Hours)
+            </div>
+            <div class="card-body">
+                <canvas id="loginChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Detected Anomalies
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>IP Address</th>
+                            <th>Action</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in recent_logs %}
+                        <tr class="{% if log in anomalies %}table-danger{% endif %}">
+                            <td>{{ log.timestamp }}</td>
+                            <td>{{ log.user|default:"System" }}</td>
+                            <td>{{ log.ip_address|default:"N/A" }}</td>
+                            <td>{{ log.action }}</td>
+                            <td>{{ log.status }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Initialize charts with your data
+    const ctx = document.getElementById('loginChart');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ login_labels|safe }},
+            datasets: [{
+                label: 'Failed Logins',
+                data: {{ login_data|safe }},
+                borderColor: 'rgb(255, 99, 132)',
+                tension: 0.1
+            }]
+        }
+    });
+</script>
+{% endblock %}
